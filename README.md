@@ -60,6 +60,7 @@ pip install hofvarpnir-hcon
 
 ## Quick Start: Train and Predict in Thonny
 
+```python
 #Copy and paste this entire script into Thonny and run it:
 
 from hofvarpnirhcon import train_density, predict_density, predict_density_batch
@@ -198,6 +199,7 @@ results = predict_density_batch(smiles_list, weights_path="my_weights.pkl")
 
 for smiles, density in zip(smiles_list, results):
     print(f"{smiles}: {density:.3f} g/cm³")
+```
 
 ## Performance
 
