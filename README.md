@@ -1,5 +1,8 @@
 # HófvarpnirHCON
 
+GitHub: [github.com/LeonardFH/hofvarpnir-hcon](https://github.com/LeonardFH/hofvarpnir-hcon)
+PyPI: [pypi.org/project/hofvarpnir-hcon](https://pypi.org/project/hofvarpnir-hcon/)
+
 A modular Python framework for molecular property prediction from SMILES strings.
 
 HófvarpnirHCON (pronounced "HOFF-varp-neer-HCON") is designed as a fast and extensible framework for predicting molecular properties of organic compounds containing C, H, O, and N.

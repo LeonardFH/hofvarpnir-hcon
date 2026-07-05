@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setup(
     name="hofvarpnir-hcon",
-    version="3.18.0",
+    version="3.20.0",
     author="Leonard Haasbroek",
     author_email="leonardfhaasbroek@gmail.com",
     description="HófvarpnirHCON - Fast dictionary-based crystal density prediction from SMILES",
@@ -28,6 +28,10 @@ setup(
     python_requires=">=3.8",
     license="BSD-3-Clause",
     license_files=["LICENSE"],
+    project_urls={                              # 👈 4 spaces
+        "Source": "https://github.com/LeonardFH/hofvarpnir-hcon",      # 👈 8 spaces
+        "Bug Reports": "https://github.com/LeonardFH/hofvarpnir-hcon/issues",  # 👈 8 spaces
+    },                                          # 👈 4 spaces
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Science/Research",
