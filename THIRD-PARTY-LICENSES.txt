@@ -1,0 +1,39 @@
+THIRD-PARTY LICENSES
+
+This file lists third-party dependencies used by this software.
+
+============================================================
+
+Package: numpy 2.2.6
+License: BSD License
+
+============================================================
+
+Package: pandas 2.3.3
+License: BSD License
+
+============================================================
+
+Package: scipy 1.15.3
+License: BSD License
+
+============================================================
+
+Package: scikit-learn 1.7.1
+License: BSD-3-Clause
+
+============================================================
+
+Package: rdkit 2025.3.6
+License: BSD-3-Clause
+
+============================================================
+
+Package: tqdm 4.68.1
+License: MPL-2.0 AND MIT
+
+============================================================
+
+NOTE:
+Full license texts are available in the upstream package distributions
+and are included when these dependencies are installed via pip.
