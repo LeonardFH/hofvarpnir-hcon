@@ -52,7 +52,7 @@ Results will be posted here (with your permission).
 
 ## Documentation
 
-For a detailed explanation of the method, see [docs/METHODS.md](docs/METHODS.md).
+For a detailed explanation of the method, see [hofvarpnirhcon/docs/METHODS.md](hofvarpnirhcon/docs/METHODS.md).
 
 ## Installation
 
