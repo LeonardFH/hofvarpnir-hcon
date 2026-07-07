@@ -1,4 +1,4 @@
-## 1 Inroducation ##
+## 1 Introducation ##
 
 Crystal density is a fundamental descriptor in crystal engineering, influencing packing efficiency, polymorph stability, solubility, and mechanical behavior. Accurate density prediction is therefore essential for pharmaceutical development, energetic materials research, and high-throughput screening of functional organic crystals. Despite its importance, reliable prediction remains challenging because it depends on both molecular structure and intermolecular packing.
 
