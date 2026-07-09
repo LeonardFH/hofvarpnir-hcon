@@ -292,5 +292,5 @@ The table below contrasts our lightweight, dictionary-based CPU throughput and a
 If you use this software or method in your research, please use the following citation format:
 
 ```text
-Haasbroek, L. F. (2026). HófvarpnirHCON: Fast dictionary-based crystal density prediction. Available at: ://github.com
+Haasbroek, L. F. (2026). HófvarpnirHCON: Fast dictionary-based crystal density prediction. Available at: https://github.com/LeonardFH/hofvarpnir-hcon
 ```
