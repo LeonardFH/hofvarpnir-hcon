@@ -64,144 +64,152 @@ pip install hofvarpnir-hcon
 ## Quick Start: Train and Predict in Thonny
 
 ```python
-#Copy and paste this entire script into Thonny and run it:
+# Copy and paste this entire script into Thonny and run it:
 
 from hofvarpnirhcon import train_density, predict_density, predict_density_batch
 import pandas as pd
 import numpy as np
 from sklearn.metrics import mean_absolute_error
 
-# ============================================================
-# STEP 1: Download a dataset from one of the papers above
-# Save it as "trainingdata.csv" with columns: SMILES, Density
-# ============================================================
+def main():
+    # ============================================================
+    # STEP 1: Download a dataset from one of the papers above
+    # Save it as "trainingdata.csv" with columns: SMILES, Density
+    # ============================================================
+
+    # ============================================================
+    # STEP 2: Train your own weights
+    # ============================================================
+
+    print("Training model...")
+    weights = train_density(
+        data_path="trainingdata.csv",
+        output_path="my_weights.pkl",
+        filter_cocrystals=True,         # Train on pure crystals only (recommended)
+        filter_hcon=True,               # Train on H,C,O,N atoms only (recommended)
+        verbose=True
+    )
+    print("Training complete! Weights saved to my_weights.pkl")
+
+    # ============================================================
+    # STEP 3: Load the dataset for predictions
+    # ============================================================
+
+    df = pd.read_csv("trainingdata.csv")
+    smiles_list = df["SMILES"].tolist()
+    actuals = df["Density"].values
+
+    # ============================================================
+    # STEP 4: Single molecule prediction
+    # ============================================================
+
+    print("\n" + "=" * 60)
+    print("SINGLE MOLECULE PREDICTION")
+    print("=" * 60)
+
+    test_smiles = smiles_list[0]
+    test_actual = actuals[0]
+    pred = predict_density(test_smiles, weights_path="my_weights.pkl")
+    print(f"SMILES: {test_smiles}")
+    print(f"Actual density: {test_actual:.4f} g/cm³")
+    print(f"Predicted density: {pred:.4f} g/cm³")
+    print(f"Error: {abs(pred - test_actual):.4f} g/cm³")
+
+    # ============================================================
+    # STEP 5: Batch prediction on entire dataset
+    # ============================================================
+
+    print("\n" + "=" * 60)
+    print("BATCH PREDICTION")
+    print("=" * 60)
+
+    print(f"Predicting {len(smiles_list)} molecules...")
+    predictions = predict_density_batch(
+        smiles_list=smiles_list,
+        weights_path="my_weights.pkl",
+        verbose=True
+    )
+
+    # ============================================================
+    # STEP 6: Calculate MAE and show results (FILTER NONE VALUES)
+    # ============================================================
+
+    # Filter out None values (failed predictions)
+    valid_mask = [p is not None for p in predictions]
+    valid_actuals = np.array(actuals)[valid_mask]
+    valid_predictions = [p for p in predictions if p is not None]
+
+    print(f"\n✅ Valid predictions: {len(valid_predictions):,} / {len(smiles_list):,}")
+
+    if len(valid_predictions) == 0:
+        print("❌ No valid predictions. Check your SMILES strings.")
+        return
+
+    mae = mean_absolute_error(valid_actuals, valid_predictions)
+    rmse = np.sqrt(np.mean((np.array(valid_predictions) - valid_actuals) ** 2))
+    r2 = np.corrcoef(valid_predictions, valid_actuals)[0, 1] ** 2
+
+    print(f"\nModel Performance:")
+    print(f"  MAE:  {mae:.4f} g/cm³")
+    print(f"  RMSE: {rmse:.4f} g/cm³")
+    print(f"  R²:   {r2:.4f}")
+
+    print("\nFirst 10 predictions:")
+    print("-" * 70)
+    print(f"{'SMILES':<35} {'Actual':>10} {'Predicted':>10} {'Error':>10}")
+    print("-" * 70)
+
+    for i in range(min(10, len(valid_predictions))):
+        smiles = smiles_list[i][:35]
+        actual = valid_actuals[i]
+        pred = valid_predictions[i]
+        error = abs(pred - actual)
+        print(f"{smiles:<35} {actual:>10.4f} {pred:>10.4f} {error:>10.4f}")
+
+    print("-" * 70)
+    print(f"MAE: {mae:.4f} g/cm³")
+    print("\n✅ All done! Weights saved to my_weights.pkl")
+
+    # ============================================================
+    # STEP 7: Save results to CSV
+    # ============================================================
+
+    results_df = pd.DataFrame({
+        'SMILES': smiles_list[:len(valid_predictions)],
+        'Actual_Density': valid_actuals,
+        'Predicted_Density': valid_predictions,
+        'Error': np.array(valid_predictions) - valid_actuals,
+        'Abs_Error': np.abs(np.array(valid_predictions) - valid_actuals),
+    })
+
+    results_df.to_csv('prediction_results.csv', index=False)
+    print("\n💾 Results saved to: prediction_results.csv")
+
 
 # ============================================================
-# STEP 2: Train your own weights
+# CRITICAL WINDOWS SAFEGUARD
+# This stops parallel worker sub-processes from infinitely loop-crashing
 # ============================================================
+if __name__ == '__main__':
+    main()
 
-print("Training model...")
-weights = train_density(
-    data_path="trainingdata.csv",
-    output_path="my_weights.pkl",
-    filter_cocrystals=True,         # Train on pure crystals only (recommended)
-    filter_hcon=True,               # Train on H,C,O,N atoms only (recommended)
-    verbose=True
-)
-print("Training complete! Weights saved to my_weights.pkl")
 
 # ============================================================
-# STEP 3: Load the dataset for predictions
+# USAGE EXAMPLES (Outside of main execution loop)
 # ============================================================
 
-df = pd.read_csv("trainingdata.csv")
-smiles_list = df["SMILES"].tolist()
-actuals = df["Density"].values
+# Single molecule prediction example:
+# from hofvarpnirhcon import predict_density
+# density = predict_density("CCO", weights_path="my_weights.pkl")
+# print(f"{density:.3f} g/cm³")
 
-# ============================================================
-# STEP 4: Single molecule prediction
-# ============================================================
+# Batch prediction example:
+# from hofvarpnirhcon import predict_density_batch
+# smiles_list = ["CCO", "CC", "c1ccccc1", "O"]
+# results = predict_density_batch(smiles_list, weights_path="my_weights.pkl")
+# for smiles, density in zip(smiles_list, results):
+#     print(f"{smiles}: {density:.3f} g/cm³")
 
-print("\n" + "=" * 60)
-print("SINGLE MOLECULE PREDICTION")
-print("=" * 60)
-
-test_smiles = smiles_list[0]
-test_actual = actuals[0]
-pred = predict_density(test_smiles, weights_path="my_weights.pkl")
-print(f"SMILES: {test_smiles}")
-print(f"Actual density: {test_actual:.4f} g/cm³")
-print(f"Predicted density: {pred:.4f} g/cm³")
-print(f"Error: {abs(pred - test_actual):.4f} g/cm³")
-
-# ============================================================
-# STEP 5: Batch prediction on entire dataset
-# ============================================================
-
-print("\n" + "=" * 60)
-print("BATCH PREDICTION")
-print("=" * 60)
-
-print(f"Predicting {len(smiles_list)} molecules...")
-predictions = predict_density_batch(
-    smiles_list=smiles_list,
-    weights_path="my_weights.pkl",
-    verbose=True
-)
-
-# ============================================================
-# STEP 6: Calculate MAE and show results (FILTER NONE VALUES)
-# ============================================================
-
-# Filter out None values (failed predictions)
-valid_mask = [p is not None for p in predictions]
-valid_actuals = np.array(actuals)[valid_mask]
-valid_predictions = [p for p in predictions if p is not None]
-
-print(f"\n✅ Valid predictions: {len(valid_predictions):,} / {len(smiles_list):,}")
-
-if len(valid_predictions) == 0:
-    print("❌ No valid predictions. Check your SMILES strings.")
-    exit()
-
-mae = mean_absolute_error(valid_actuals, valid_predictions)
-rmse = np.sqrt(np.mean((np.array(valid_predictions) - valid_actuals) ** 2))
-r2 = np.corrcoef(valid_predictions, valid_actuals)[0, 1] ** 2
-
-print(f"\nModel Performance:")
-print(f"  MAE:  {mae:.4f} g/cm³")
-print(f"  RMSE: {rmse:.4f} g/cm³")
-print(f"  R²:   {r2:.4f}")
-
-print("\nFirst 10 predictions:")
-print("-" * 70)
-print(f"{'SMILES':<35} {'Actual':>10} {'Predicted':>10} {'Error':>10}")
-print("-" * 70)
-
-for i in range(min(10, len(valid_predictions))):
-    smiles = smiles_list[i][:35]
-    actual = valid_actuals[i]
-    pred = valid_predictions[i]
-    error = abs(pred - actual)
-    print(f"{smiles:<35} {actual:>10.4f} {pred:>10.4f} {error:>10.4f}")
-
-print("-" * 70)
-print(f"MAE: {mae:.4f} g/cm³")
-print("\n✅ All done! Weights saved to my_weights.pkl")
-
-# ============================================================
-# STEP 7: Save results to CSV
-# ============================================================
-
-results_df = pd.DataFrame({
-    'SMILES': smiles_list[:len(valid_predictions)],
-    'Actual_Density': valid_actuals,
-    'Predicted_Density': valid_predictions,
-    'Error': np.array(valid_predictions) - valid_actuals,
-    'Abs_Error': np.abs(np.array(valid_predictions) - valid_actuals),
-})
-
-results_df.to_csv('prediction_results.csv', index=False)
-print("\n💾 Results saved to: prediction_results.csv")
-
-# ============================================================
-# USAGE EXAMPLES
-# ============================================================
-
-# Single molecule prediction:
-from hofvarpnirhcon import predict_density
-
-density = predict_density("CCO", weights_path="my_weights.pkl")
-print(f"{density:.3f} g/cm³")
-
-# Batch prediction:
-from hofvarpnirhcon import predict_density_batch
-
-smiles_list = ["CCO", "CC", "c1ccccc1", "O"]
-results = predict_density_batch(smiles_list, weights_path="my_weights.pkl")
-
-for smiles, density in zip(smiles_list, results):
-    print(f"{smiles}: {density:.3f} g/cm³")
 ```
 
 ## Performance
