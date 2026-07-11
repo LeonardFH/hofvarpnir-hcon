@@ -302,3 +302,5 @@ If you use this software or method in your research, please use the following ci
 ```text
 Haasbroek, L. F. (2026). HófvarpnirHCON: Fast dictionary-based crystal density prediction (Version 1.0.0) [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.21315626
 ```
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21315626.svg)](https://doi.org/10.5281/zenodo.21315626)
