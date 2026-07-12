@@ -219,6 +219,16 @@ if __name__ == '__main__':
 - Speed: ~2,700 molecules/second (2 core/thread)
 - Speed: ~3,500 molecules/second (4 core/thread - max achieved)
 
+### Verified Benchmarks
+
+| **Dataset** | **Size** | **Validation** | **MAE (g/cm³)** | **RMSE (g/cm³)** | **R²** |
+|:---|:---:|:---:|:---:|:---:|:---:|
+| **Mathieu 2017** | 308 | 10-fold CV | **0.0126** | 0.0269 | 0.9261 |
+| **Davis 2024** | 16,381 | 10-fold CV | 0.0306 | 0.0406 | 0.9451 |
+
+Throughput is consistent across datasets at ~1,700–1,800 molecules/second on a single CPU core, scaling up to ~3,500 molecules/second with 4 cores in parallel.
+
+
 ## Tips for Best Performance
 
 For optimal accuracy, we recommend training separate dictionaries for each chemical family:
@@ -276,6 +286,47 @@ Total Dataset Size:  16,383 molecules
 Training Duration:    16.0896 seconds
 Prediction Duration:   9.9932 seconds
 Overall Script Time:  26.7492 seconds
+Throughput Rate:      1,639.21 molecules/second
+============================================================
+```
+
+### 2. The Mathieu 308 Open Benchmark (10-Fold Cross-Validation)
+
+The framework was trained and verified using the open-source **Mathieu Dataset** (containing 308 valid, unique organic structures). In each fold, the dictionary weights were derived from 90% of the data and evaluated on the hidden 10% unseen molecules.
+
+- **Total Evaluated Unseen Molecules:** 308
+- **Overall Unseen MAE:** 0.0126 g/cm³
+- **Overall Unseen RMSE:** 0.0269 g/cm³
+- **Overall Unseen Total R²:** 0.9261
+
+#### 📦 Fold-by-Fold Performance Breakdown
+
+| Validation Fold | Train Size | Unseen Test Size | Valid Predictions | Unseen Fold MAE |
+| :--- | :--- | :--- | :--- | :--- |
+| **Fold 1**  | 277 | 31 | 31 | 0.0108 g/cm³ |
+| **Fold 2**  | 277 | 31 | 31 | 0.0161 g/cm³ |
+| **Fold 3**  | 277 | 31 | 31 | 0.0081 g/cm³ |
+| **Fold 4**  | 277 | 31 | 31 | 0.0197 g/cm³ |
+| **Fold 5**  | 277 | 31 | 31 | 0.0089 g/cm³ |
+| **Fold 6**  | 277 | 31 | 31 | 0.0089 g/cm³ |
+| **Fold 7**  | 277 | 31 | 31 | 0.0142 g/cm³ |
+| **Fold 8**  | 277 | 31 | 31 | 0.0176 g/cm³ |
+| **Fold 9**  | 278 | 30 | 30 | 0.0104 g/cm³ |
+| **Fold 10** | 278 | 30 | 30 | 0.0115 g/cm³ |
+
+---
+
+### ⏱️ Verified Execution Timings (Mathieu 308 Batch)
+
+```text
+============================================================
+🏁 HÓFVARPNIR PERFORMANCE SUMMARY (Mathieu)
+============================================================
+Total Dataset Size:  308 molecules
+Training Duration:    0.2382 seconds
+Prediction Duration:  0.1824 seconds
+Overall Script Time:  0.4563 seconds
+Throughput Rate:      1,688.40 molecules/second
 ============================================================
 ```
 
