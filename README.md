@@ -47,6 +47,10 @@ The training data may be obtained from:
   
 - Casey, A. D.; Son, S. F.; Bilionis, I.; Barnes, B. C. Prediction of Energetic Material Properties from Electronic Structure Using 3D Convolutional Neural Networks. *J. Chem. Inf. Model.* **2020**, *60*, 10. 
   DOI: 10.1021/acs.jcim.0c00259
+  
+- Taniguchi, T.; Fukasawa, R. Crystal Structure Prediction of Organic Molecules by Machine Learning-Based Lattice Sampling and Structure Relaxation. *Digital Discovery* **2025**, *4*, 3270–3281. DOI: 10.1039/d5dd00304k
+    - **Dataset:** Taniguchi, T. (2025). SPaDe-CSP. GitHub. https://github.com/takuyhaa/SPaDe-CSP
+    - **Dataset DOI:** https://doi.org/10.5281/zenodo.17214315
 
 These datasets are available as Supporting Information with their respective papers.
 
@@ -238,6 +242,9 @@ if __name__ == '__main__':
 | **Taylor/Day 2025** | 1,024 | Single run | 0.0351 | 0.0482 | 0.9239 |
 | **Davis 2024** | 16,381 | 10-fold CV | 0.0306 | 0.0406 | 0.9451 |
 | **Casey 2020** | 26,265 | Single run | **0.0280** | 0.0359 | 0.7340 |
+| **Taniguchi 2025 (unfiltered)** | 170,253 | Single run | 0.0357 | 0.0506 | 0.9223 |
+| **Taniguchi 2025 (99%)** | 168,918 | Single run | 0.0335 | 0.0447 | 0.9374 |
+| **Taniguchi 2025 (97%)** | 165,868 | Single run | **0.0317** | 0.0416 | 0.9434 |
 
 Throughput is consistent across datasets at ~1,700–1,800 molecules/second on a single CPU core, scaling up to ~3,500 molecules/second with 4 cores in parallel.
 
