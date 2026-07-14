@@ -1,3 +1,8 @@
+<p align="center">
+  <img src="images/hofvarpnir_logo.png" alt="HófvarpnirHCON Logo" width="300">
+</p>
+
+
 # HófvarpnirHCON
 
 GitHub: [github.com/LeonardFH/hofvarpnir-hcon](https://github.com/LeonardFH/hofvarpnir-hcon)
