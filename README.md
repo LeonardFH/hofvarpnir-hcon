@@ -42,6 +42,12 @@ The training data may be obtained from:
 
 - Mathieu, D. Sensitivity of Energetic Materials: Theoretical Relationships to Detonation Performance and Molecular Structure. Ind. Eng. Chem. Res. 2017, 56, 8191–8201. DOI: 10.1021/acs.iecr.7b02021
 
+- Taylor, C. R.; Butler, P. W. V.; Day, G. M. Predictive Crystallography at Scale: Mapping, Validating, and Learning from 1,000 Crystal Energy Landscapes. *Faraday Discuss.* **2025**, *256*, 434–458. DOI: 10.1039/D4FD00105B
+  Dataset: Taylor, C.; Day, G.; Butler, P. W. V. (2024). CSP-generated crystal structures of 1,000+ rigid organic molecules. University of Southampton. DOI: 10.5258/SOTON/D3094
+  
+- Casey, A. D.; Son, S. F.; Bilionis, I.; Barnes, B. C. Prediction of Energetic Material Properties from Electronic Structure Using 3D Convolutional Neural Networks. *J. Chem. Inf. Model.* **2020**, *60*, 10. 
+  DOI: 10.1021/acs.jcim.0c00259
+
 These datasets are available as Supporting Information with their respective papers.
 
 ## Community Benchmarks
@@ -229,7 +235,9 @@ if __name__ == '__main__':
 | **Dataset** | **Size** | **Validation** | **MAE (g/cm³)** | **RMSE (g/cm³)** | **R²** |
 |:---|:---:|:---:|:---:|:---:|:---:|
 | **Mathieu 2017** | 308 | 10-fold CV | **0.0126** | 0.0269 | 0.9261 |
+| **Taylor/Day 2025** | 1,024 | Single run | 0.0351 | 0.0482 | 0.9239 |
 | **Davis 2024** | 16,381 | 10-fold CV | 0.0306 | 0.0406 | 0.9451 |
+| **Casey 2020** | 26,265 | Single run | **0.0280** | 0.0359 | 0.7340 |
 
 Throughput is consistent across datasets at ~1,700–1,800 molecules/second on a single CPU core, scaling up to ~3,500 molecules/second with 4 cores in parallel.
 
@@ -334,6 +342,27 @@ Overall Script Time:  0.4563 seconds
 Throughput Rate:      1,688.40 molecules/second
 ============================================================
 ```
+
+
+### Co-crystal Prediction
+
+HófvarpnirHCON handles co-crystals (SMILES strings containing a dot, e.g., `"CCO.O=C(O)C"`) using mass-weighted averaging of the predicted densities of each component.
+
+It works for any number of components in the co-crystal — two, three, or more — with no additional parameters or model changes.
+
+For datasets containing a **large number of co-crystals**, improved accuracy can be achieved by training separate dictionaries on co-crystal data only.
+
+For datasets with **only a few co-crystals**, the pure-trained dictionaries provide reliable predictions via mass-weighted averaging, and no special treatment is required.
+
+#### Performance Estimate
+
+Based on the model's performance on single-component systems and the physical assumptions of the method, I estimate that HófvarpnirHCON will achieve approximately:
+
+- **MAE:** ~0.038 g/cm³
+- **RMSE:** ~0.050 g/cm³
+- **R²:** ~0.90
+
+If you have co-crystal data, you are welcome to share your results via the [Community Benchmarks](#community-benchmarks) section above.
 
 ---
 
