@@ -36,23 +36,26 @@ This project is distributed under the BSD 3-Clause License.
 
 ## Data Sources
 
-The training data may be obtained from:
+The training and evaluation data used in the paper may be obtained from the following publicly available sources:
 
-- Davis, J. V.; Marrs, F. W.; Cawkwell, M. J.; Manner, V. W. Machine Learning Models for High Explosive Crystal Density and Performance. Chem. Mater. 2024, 36, 11109–11118. DOI: 10.1021/acs.chemmater.4c01978
+- **Taniguchi (2025)**: Taniguchi, T.; Fukasawa, R. Crystal Structure Prediction of Organic Molecules by Machine Learning-Based Lattice Sampling and Structure Relaxation. *Digital Discovery* **2025**, *4*, 3270–3281. DOI: [10.1039/d5dd00304k](https://doi.org/10.1039/d5dd00304k)
+  - **Dataset:** [SPaDe-CSP GitHub](https://github.com/takuyhaa/SPaDe-CSP) | Zenodo DOI: [10.5281/zenodo.17214315](https://doi.org/10.5281/zenodo.17214315)
 
-- Mathieu, D. Sensitivity of Energetic Materials: Theoretical Relationships to Detonation Performance and Molecular Structure. Ind. Eng. Chem. Res. 2017, 56, 8191–8201. DOI: 10.1021/acs.iecr.7b02021
+- **He (2026)**: He, Y.-J. et al. Transfer learning-enabled density prediction model for energetic molecule screening. *Energetic Materials Frontiers* **2026**, *7* (2), 152–160. DOI: [10.1016/j.enmf.2025.11.010](https://doi.org/10.1016/j.enmf.2025.11.010)
+  - **Dataset:** [TransfLearn GitHub](https://github.com/caepliujian/TransfLearn)
 
-- Taylor, C. R.; Butler, P. W. V.; Day, G. M. Predictive Crystallography at Scale: Mapping, Validating, and Learning from 1,000 Crystal Energy Landscapes. *Faraday Discuss.* **2025**, *256*, 434–458. DOI: 10.1039/D4FD00105B
-  Dataset: Taylor, C.; Day, G.; Butler, P. W. V. (2024). CSP-generated crystal structures of 1,000+ rigid organic molecules. University of Southampton. DOI: 10.5258/SOTON/D3094
+- **Davis (2024)**: Davis, J. V. et al. Machine Learning Models for High Explosive Crystal Density and Performance. *Chem. Mater.* **2024**, *36*, 11109–11118. DOI: [10.1021/acs.chemmater.4c01978](https://doi.org/10.1021/acs.chemmater.4c01978)
+
+- **Jin (2023)**: Jin, J.-X. et al. Force field-inspired transformer network assisted crystal density prediction for energetic materials. *J. Cheminform.* **2023**, *15*, 65. DOI: [10.1186/s13321-023-00736-6](https://doi.org/10.1186/s13321-023-00736-6)
+  - **Dataset:** [FFiTrNet GitHub](https://github.com/jjx-2000/FFiTrNet)
+
+- **Taylor (2025)**: Taylor, C. R. et al. Predictive Crystallography at Scale: Mapping, Validating, and Learning from 1,000 Crystal Energy Landscapes. *Faraday Discuss.* **2025**, *256*, 434–458. DOI: [10.1039/D4FD00105B](https://doi.org/10.1039/D4FD00105B)
+  - **Dataset:** University of Southampton Repository. DOI: [10.5258/SOTON/D3094](https://doi.org/10.5258/SOTON/D3094)
   
-- Casey, A. D.; Son, S. F.; Bilionis, I.; Barnes, B. C. Prediction of Energetic Material Properties from Electronic Structure Using 3D Convolutional Neural Networks. *J. Chem. Inf. Model.* **2020**, *60*, 10. 
-  DOI: 10.1021/acs.jcim.0c00259
-  
-- Taniguchi, T.; Fukasawa, R. Crystal Structure Prediction of Organic Molecules by Machine Learning-Based Lattice Sampling and Structure Relaxation. *Digital Discovery* **2025**, *4*, 3270–3281. DOI: 10.1039/d5dd00304k
-    - **Dataset:** Taniguchi, T. (2025). SPaDe-CSP. GitHub. https://github.com/takuyhaa/SPaDe-CSP
-    - **Dataset DOI:** https://doi.org/10.5281/zenodo.17214315
+- **Mathieu (2017)**: Mathieu, D. Sensitivity of Energetic Materials: Theoretical Relationships to Detonation Performance and Molecular Structure. *Ind. Eng. Chem. Res.* **2017**, *56*, 8191–8201. DOI: [10.1021/acs.iecr.7b02021](https://doi.org/10.1021/acs.iecr.7b02021)
 
-These datasets are available as Supporting Information with their respective papers.
+These datasets are available as Supporting Information with their respective papers or via the linked public repositories.
+
 
 ## Community Benchmarks
 
@@ -241,7 +244,6 @@ if __name__ == '__main__':
 | **Mathieu 2017** | 308 | 10-fold CV | **0.0126** | 0.0269 | 0.9261 |
 | **Taylor/Day 2025** | 1,024 | Single run | 0.0351 | 0.0482 | 0.9239 |
 | **Davis 2024** | 16,381 | 10-fold CV | 0.0306 | 0.0406 | 0.9451 |
-| **Casey 2020** | 26,265 | Single run | **0.0280** | 0.0359 | 0.7340 |
 | **Taniguchi 2025 (unfiltered)** | 170,253 | Single run | 0.0357 | 0.0506 | 0.9223 |
 | **Taniguchi 2025 (99%)** | 168,918 | Single run | 0.0335 | 0.0447 | 0.9374 |
 | **Taniguchi 2025 (97%)** | 165,868 | Single run | **0.0317** | 0.0416 | 0.9434 |
@@ -381,18 +383,17 @@ The table below contrasts our lightweight, dictionary-based CPU throughput and a
 
 | Model Architecture | Hardware Profile | Compute Infrastructure | Throughput Velocity | Unseen Test MAE |
 | :--- | :--- | :--- | :--- | :--- |
-| **HófvarpnirHCON** (This Work) | 21-Bond Local Weights | 1 Standard Laptop CPU Core | **1,639 – 3,500+ mols / sec** | **0.0306 g/cm³** |
+| **HófvarpnirHCON** (This Work) | 186-Bond Overlap Dictionary | 1 Standard Laptop CPU Core | **2,470 mols / sec** | **0.0348 g/cm³** |
 
 *Note: While heavy Transformer networks require significant time to initialize, allocate VRAM, and pass global convolutions across molecular graphs, HófvarpnirHCON trains and predicts across the entire 16,381 molecule Davis dataset in under 27 seconds total on a standard laptop CPU.*
 
----
 
 ## Citation
 
 If you use this software or method in your research, please use the following citation format:
 
 ```text
-Haasbroek, L. F. (2026). HófvarpnirHCON: Fast dictionary-based crystal density prediction (Version 1.0.0) [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.21315626
+Haasbroek, L. F. (2026). HófvarpnirHCON: Fast dictionary-based crystal density prediction (Version 3.21.0) [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.21315626
 ```
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21315626.svg)](https://doi.org/10.5281/zenodo.21315626)
