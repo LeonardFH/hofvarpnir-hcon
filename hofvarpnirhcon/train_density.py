@@ -23,7 +23,11 @@ RDLogger.DisableLog('rdApp.*')
 # ============================================================================
 PHI = (1 + np.sqrt(5)) / 2
 PI = np.pi
-MAGIC_SCALE = PI * PHI
+
+# The Leonardus Scale: pi^2 / phi ≈ 6.09984
+# Aligns with the empirical optimum C_LV ≈ 6.1 identified in the paper.
+LEONARDUS_SCALE = (PI ** 2) / PHI
+
 DEFAULT_OVERLAP = 0.3
 MW_SMALL_MAX = 180
 MW_MEDIUM_MAX = 400
@@ -40,13 +44,17 @@ def get_molecular_weight(smiles):
     mol = Chem.AddHs(mol)
     return sum(atom.GetMass() for atom in mol.GetAtoms())
 
-def magic_volume(smiles):
+def leonardus_volume(smiles):
+    """
+    Calculates the Leonardus reference volume (V_L).
+    V_L = (pi^2 / phi) * sum(m_i^(1/3))
+    """
     mol = Chem.MolFromSmiles(smiles)
     if mol is None:
         return None
     mol = Chem.AddHs(mol)
     total_cuberoot = sum(atom.GetMass() ** (1/3) for atom in mol.GetAtoms())
-    return MAGIC_SCALE * total_cuberoot
+    return LEONARDUS_SCALE * total_cuberoot
 
 def get_bond_type_only(smiles):
     """Get bond types without lengths."""
@@ -88,7 +96,8 @@ def train_type_dictionary(data, min_bond_count=2):
     X = []
     y = []
     for row in data:
-        target = row['V_magic'] - row['V_exp']
+        # Target is the volume reduction: V_L - V_exp
+        target = row['V_L'] - row['V_exp']
         counts = {bt: 0 for bt in bond_types}
         for b in row['bonds_type_only']:
             if b in counts:
@@ -144,7 +153,6 @@ def build_class_data(data, strategy, config):
     elif strategy == 'two_class':
         split = config['split']
         if split == MW_MEDIUM_MAX:  # <400, >=400
-            # 🔥 FIX: Keep small and medium separate for training
             small = [d for d in data if d['mw'] < MW_SMALL_MAX]
             medium = [d for d in data if MW_SMALL_MAX <= d['mw'] < MW_MEDIUM_MAX]
             large = [d for d in data if d['mw'] >= MW_MEDIUM_MAX]
@@ -186,7 +194,7 @@ def train_density(
     strategy: str = 'auto',
     min_per_class: int = 150,
     filter_hcon: bool = True,
-    filter_cocrystals: bool = True,  # 👈 NEW PARAMETER
+    filter_cocrystals: bool = True,
     verbose: bool = True
 ):
     """
@@ -225,8 +233,8 @@ def train_density(
         if verbose:
             print(f"  Filtered H/C/N/O molecules: {len(df):,}")
 
-    # 🔥 NEW: Filter out cocrystals (SMILES with '.')
-    n_coco = 0  # 👈 ADD THIS LINE — ensures n_coco is always defined
+    # Filter out cocrystals (SMILES with '.')
+    n_coco = 0  
     if filter_cocrystals:
         cocrystal_mask = df["SMILES"].str.contains(r'\.', na=False, regex=True)
         n_coco = cocrystal_mask.sum()
@@ -251,8 +259,8 @@ def train_density(
             failed += 1
             continue
         
-        V_magic = magic_volume(smiles)
-        if V_magic is None:
+        V_L = leonardus_volume(smiles)
+        if V_L is None:
             failed += 1
             continue
         
@@ -267,7 +275,7 @@ def train_density(
             'smiles': smiles,
             'exp': exp,
             'mw': mw,
-            'V_magic': V_magic,
+            'V_L': V_L,
             'V_exp': V_exp,
             'bonds_type_only': bonds_type_only,
         })
@@ -342,9 +350,7 @@ def train_density(
         if verbose:
             print(f"    → {len(dict_result)} bond types")
     
-    # ========================================================================
-    # 🔥 FIX: Merge small + medium for two_class (matching original script)
-    # ========================================================================
+    # Merge small + medium for two_class (matching original script logic)
     if final_strategy == 'two_class' and 'small' in weights and 'medium' in weights:
         if verbose:
             print(f"\n  Merging small + medium for two-class prediction...")
@@ -368,11 +374,12 @@ def train_density(
         'n_small': details['small'],
         'n_medium': details['medium'],
         'n_large': details['large'],
-        'n_cocrystals_filtered': n_coco if filter_cocrystals else 0,  # 👈 Track filtered cocrystals
+        'n_cocrystals_filtered': n_coco if filter_cocrystals else 0,
         'date_trained': datetime.now().isoformat(),
         'source_data': os.path.basename(data_path),
         'min_per_class': min_per_class,
         'filter_cocrystals': filter_cocrystals,
+        'leonardus_scale': LEONARDUS_SCALE,
     }
     weights['default_overlap'] = DEFAULT_OVERLAP
     
@@ -424,6 +431,6 @@ if __name__ == "__main__":
         strategy=args.strategy,
         min_per_class=args.min_per_class,
         filter_hcon=not args.no_filter,
-        filter_cocrystals=not args.keep_cocrystals,  # 👈 Default: filter cocrystals
+        filter_cocrystals=not args.keep_cocrystals,
         verbose=True
     )

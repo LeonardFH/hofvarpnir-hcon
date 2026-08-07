@@ -19,7 +19,11 @@ from functools import partial
 # ============================================================================
 PHI = (1 + np.sqrt(5)) / 2
 PI = np.pi
-MAGIC_SCALE = PI * PHI
+
+# The Leonardus Scale: pi^2 / phi ≈ 6.09984
+# Aligns with the empirical optimum C_LV ≈ 6.1 identified in the paper.
+LEONARDUS_SCALE = (PI ** 2) / PHI
+
 DEFAULT_OVERLAP = 0.3
 MW_SMALL_MAX = 180
 MW_MEDIUM_MAX = 400
@@ -43,9 +47,9 @@ def get_molecular_weight(smiles: str) -> Optional[float]:
     mol = Chem.AddHs(mol)
     return sum(atom.GetMass() for atom in mol.GetAtoms())
 
-def magic_volume(smiles: str) -> Optional[float]:
+def leonardus_volume(smiles: str) -> Optional[float]:
     """
-    Calculate magic volume: π·φ·Σ(mass^(1/3))
+    Calculate Leonardus Volume: (pi^2 / phi) * Σ(mass^(1/3))
     This is the ideal packing volume before bond overlap corrections.
     """
     mol = Chem.MolFromSmiles(smiles)
@@ -53,7 +57,7 @@ def magic_volume(smiles: str) -> Optional[float]:
         return None
     mol = Chem.AddHs(mol)
     total_cuberoot = sum(atom.GetMass() ** (1/3) for atom in mol.GetAtoms())
-    return MAGIC_SCALE * total_cuberoot
+    return LEONARDUS_SCALE * total_cuberoot
     
 def get_atom_counts(smiles: str) -> Optional[Dict[str, int]]:
     """Get atom counts for C, H, O, N."""
@@ -190,8 +194,8 @@ def predict_single_molecule(
     if mw is None:
         return None
     
-    V_magic = magic_volume(smiles)
-    if V_magic is None:
+    V_L = leonardus_volume(smiles)
+    if V_L is None:
         return None
     
     mol = Chem.MolFromSmiles(smiles)
@@ -217,9 +221,9 @@ def predict_single_molecule(
         overlap = get_bond_overlap(a1, a2, order, overlaps_dict, default_overlap)
         total_overlap += overlap
     
-    V_corrected = V_magic - total_overlap
+    V_corrected = V_L - total_overlap
     if V_corrected <= 0:
-        V_corrected = V_magic * 0.5
+        V_corrected = V_L * 0.5
     
     return mw / V_corrected
 
@@ -243,8 +247,8 @@ def _predict_single_with_dicts_fast(
     if mw is None:
         return None
     
-    V_magic = magic_volume(smiles)
-    if V_magic is None:
+    V_L = leonardus_volume(smiles)
+    if V_L is None:
         return None
     
     mol = Chem.MolFromSmiles(smiles)
@@ -274,9 +278,9 @@ def _predict_single_with_dicts_fast(
         key = make_key(a1, a2, order)
         total_overlap += overlaps_dict.get(key, default_overlap)
     
-    V_corrected = V_magic - total_overlap
+    V_corrected = V_L - total_overlap
     if V_corrected <= 0:
-        V_corrected = V_magic * 0.5
+        V_corrected = V_L * 0.5
     
     return mw / V_corrected
 
@@ -392,7 +396,7 @@ def predict_density_single(
         return density
     
     # Calculate volume for full output
-    V_magic = magic_volume(smiles)
+    V_L = leonardus_volume(smiles)
     mol = Chem.MolFromSmiles(smiles)
     mol = Chem.AddHs(mol)
     
@@ -405,14 +409,14 @@ def predict_density_single(
         key = make_key(a1, a2, order)
         total_overlap += overlaps_dict.get(key, default_overlap)
     
-    V_corrected = V_magic - total_overlap
+    V_corrected = V_L - total_overlap
     if V_corrected <= 0:
-        V_corrected = V_magic * 0.5
+        V_corrected = V_L * 0.5
     
     return {
         'density': density,
         'mw': mw,
-        'V_magic': V_magic,
+        'V_L': V_L,
         'V_corrected': V_corrected,
         'total_overlap': total_overlap,
         'n_bonds': mol.GetNumBonds(),
@@ -629,12 +633,12 @@ def predict_density_with_k(
     if mw is None:
         return None
     
-    V_magic = magic_volume(smiles)
-    if V_magic is None:
+    V_L = leonardus_volume(smiles)
+    if V_L is None:
         return None
     
     # Calculate effective k
-    effective_k = rho * V_magic / (mw * G_FACTOR)
+    effective_k = rho * V_L / (mw * G_FACTOR)
     
     # Scale density to requested k
     scaled_rho = rho * (k / effective_k) if effective_k > 0 else rho
@@ -742,7 +746,7 @@ def explain_prediction(
     Prints a table showing each calculation step.
     """
     print("\n" + "=" * 70)
-    print(f"🔮 MAGIC VOLUME TRACE: Density prediction for {smiles}")
+    print(f"🔮 LEONARDUS VOLUME TRACE: Density prediction for {smiles}")
     print("=" * 70)
     _trace_density(smiles, weights_path)
 
@@ -762,9 +766,9 @@ def _trace_density(smiles: str, weights_path: str) -> None:
         print("  ❌ Could not calculate molecular weight")
         return
     
-    V_magic = magic_volume(smiles)
-    if V_magic is None:
-        print("  ❌ Could not calculate magic volume")
+    V_L = leonardus_volume(smiles)
+    if V_L is None:
+        print("  ❌ Could not calculate Leonardus volume")
         return
     
     overlaps_dict, class_name, fallback_used = get_overlaps_for_molecule(
@@ -801,9 +805,9 @@ def _trace_density(smiles: str, weights_path: str) -> None:
         total_overlap += overlap
         bond_list.append((f"{a1}-{a2}", order, overlap))
     
-    V_corrected = V_magic - total_overlap
+    V_corrected = V_L - total_overlap
     if V_corrected <= 0:
-        V_corrected = V_magic * 0.5
+        V_corrected = V_L * 0.5
     density = mw / V_corrected
     
     # Print table
@@ -812,13 +816,13 @@ def _trace_density(smiles: str, weights_path: str) -> None:
     print(f"  Strategy:                     {strategy.upper()}")
     print(f"  Class used:                   {class_name}" + (" (fallback)" if fallback_used else ""))
     print(f"  Molecular weight:              {mw:.2f} g/mol")
-    print(f"  Magic volume:                  {V_magic:.2f} Å³")
+    print(f"  Leonardus volume:              {V_L:.2f} Å³")
     print(f"  Total bond overlap:            {total_overlap:.4f} Å³")
     print(f"  Corrected volume:              {V_corrected:.2f} Å³")
     print(f"\n  ✨ Predicted density:          {density:.4f} g/cm³")
-    print(f"\n  Formula: Magic volume = π × φ × Σ(mass^(1/3)) = {V_magic:.2f} Å³")
+    print(f"\n  Formula: Leonardus Volume = (π² / φ) × Σ(mass^(1/3)) = {V_L:.2f} Å³")
     
-    print(f"\n  Bond overlaps (subtracted from magic volume):")
+    print(f"\n  Bond overlaps (subtracted from Leonardus volume):")
     for i, (bond, order, overlap) in enumerate(bond_list, 1):
         print(f"    {i:2d}. {bond} (order {order}): {overlap:.4f} Å³")
 
