@@ -1,5 +1,3 @@
-
-markdown
 <p align="center">
   <img src="images/hofvarpnir_logo.png" alt="HófvarpnirHCON Logo" width="300">
 </p>
@@ -38,21 +36,61 @@ These datasets are available as Supporting Information with their respective pap
 
 ## Python Programs
 
+### Discovery & Baseline
 | Script | What It Does | Paper Output |
 |--------|--------------|--------------|
 | `leonardus_volume_discovery.py` | Stage 1: Tests raw mass (V = Σm) and unscaled cubic-root (V = Σm^(1/3)) as volume proxies. | **Table 3** |
 | `leonardus_scaling_optimization.py` | Stage 2: Finds the optimal global scaling factor C₀ for each dataset. | **Table 4**, **Figure 1** |
-| `tenfold_cross_validation.py` | 10‑fold cross‑validation on all six datasets with automatic MW stratification. | **Table 8**, **Table 9** |
-| `molecular_weight_stratification.py` | Compares single vs automatic molecular weight class strategies. | **Table 7** |
-| `chemical_family_stratification.py` | Evaluates performance across CHON, S, F, Cl, Br, P, I families. | **Table 10**, **Table 11** |
-| `half_split_transfer.py` | Tests dictionary transferability across independent dataset splits. | **Table 12**, **Table 13** |
-| `synthetic_closure.py` | Checks whether the NNLS dictionary can be regenerated from its own predictions. | **Table 14**, **Table 15**, **Table 16** |
-| `split_half_stability.py` | Compares coefficients from dictionaries trained on independent splits. | **Table 17**, **Figure 4** |
-| `davis_taniguchi_comparison.py` | Overlaps 2,699 identical molecules between Davis and Taniguchi datasets. | **Table 18**, **Table 19**, **Figure 5** |
-| `four_way_intersection.py` | 1,007 molecules common to Taniguchi, He, Davis, Jin; isolates dataset curation bias. | **Table 20**, **Table 21** |
-| `polymorph_comparison.py` | Compares predicted density against experimental polymorphs (ROY, carbamazepine, aspirin, paracetamol, sulfathiazole, ritonavir). | **Figure 6** |
-| `inference_benchmark.py` | Measures throughput vs molecular weight on a 9‑core laptop. | **Table 22** |
-| `benchmark_comparison.py` | Compares HófvarpnirHCON against published models (Nguyen, Jin, Davis, He, Taniguchi). | **Table 23** |
+
+### Convergence & Stability
+| Script | What It Does | Paper Output |
+|--------|--------------|--------------|
+| `learning_curve_convergence.py` | Trains on increasing dataset sizes to measure dictionary convergence and stability. | **Figure 2** |
+| `learning_curve_convergence_plot.py` | Generates the convergence figure from summary data. | **Figure 2** |
+| `slice_stability.py` | Trains on 2,500‑molecule slices and predicts remaining molecules only. Tests generalisation to unseen data. | **Figure 3**, **Table 6** |
+| `slice_stability_combined.py` | Generates combined figure: (a) scatter of MAE per slice, (b) violin distribution. | **Figure 3** |
+| `slice_stability_statistics.py` | Calculates summary statistics (mean, median, std, CV, IQR, CI) for Table 6. | **Table 6** |
+
+### Molecular Weight & Chemical Family Stratification
+| Script | What It Does | Paper Output |
+|--------|--------------|--------------|
+| `single_vs_auto.py` | Compares single global dictionary against automatic molecular weight class stratification. | **Table 7** |
+| `chemical_family_stratification.py` | Evaluates performance across CHON, S, F, Cl, Br, P, I families. Runs single vs auto MW strategy for each family. | **Table 10**, **Table 11** |
+
+### Cross-Validation
+| Script | What It Does | Paper Output |
+|--------|--------------|--------------|
+| `tenfold_cross_validation.py` | 10‑fold cross‑validation on all six datasets with automatic MW stratification. Full datasets. | **Table 8**, **Table 9** |
+| `tenfold_cross_validation_chon.py` | 10‑fold cross‑validation restricted to CHON molecules only. | **Table 9** |
+
+### Dictionary Transferability & Stability
+| Script | What It Does | Paper Output |
+|--------|--------------|--------------|
+| `half_split_transfer.py` | Randomly splits dataset into A and B. Trains on each, evaluates on both (4 pathways). Tests dictionary transferability. | **Table 12**, **Table 13** |
+| `synthetic_closure.py` | Trains on A, predicts B, uses predictions as synthetic B', retrains, compares direct vs synthetic pathways. Tests dictionary regenerability. | **Table 14**, **Table 15**, **Table 16** |
+| `split_half_stability.py` | Compares bond coefficients from dictionaries trained on independent splits (A vs B). Calculates Δ per bond type. | **Table 17**, **Figure 4** |
+| `split_half_stability_figure.py` | Generates Figure 4: two-panel figure showing bond-overlap coefficient differences for Davis dataset. | **Figure 4** |
+
+### Dataset Comparison & Intersection Analysis
+| Script | What It Does | Paper Output |
+|--------|--------------|--------------|
+| `four_way_intersection.py` | Finds overlapping CHON molecules across Taniguchi, He, Davis, Jin. Generates overlap CSVs for further analysis. | **Table 18**, **Table 20**, **Table 21** |
+| `four_way_intersection_one_shot.py` | One-shot 4-way intersection validation. Builds 4x4 MAE confusion matrix for Taniguchi, He, Davis, Jin. | **Table 20** |
+| `cross_dataset_validation.py` | Trains on Davis, tests on Taniguchi and vice versa. | **Table 19** |
+| `within_dataset_validation.py` | Trains and tests on the same dataset (Davis→Davis, Taniguchi→Taniguchi). | **Table 19** |
+| `davis_taniguchi_figure.py` | Generates Figure 5: density distributions + correlation scatter plot. | **Figure 5** |
+
+### Polymorphs & Benchmarking
+| Script | What It Does | Paper Output |
+|--------|--------------|--------------|
+| `polymorph_comparison.py` | Compares predicted density against experimental polymorphs (ROY, carbamazepine, aspirin, paracetamol, sulfathiazole, ritonavir). Generates Figure 6 and saves CSV results. | **Figure 6** |
+| `benchmark_within_dataset.py` | Trains on each dataset individually and predicts the same dataset (within‑dataset performance). Outputs MAE, RMSE, and R² for all six datasets. These results are used in Table 23 to compare against published models. | **Table 23** |
+| `inference_throughput_benchmark.py` | Measures inference throughput vs molecular weight on the combined dataset (229,409 molecules, 9 cores). Splits molecules into 5 MW bins and reports speed per bin. | **Table 22** |
+
+### Supporting / Validation
+| Script | What It Does | Paper Output |
+|--------|--------------|--------------|
+| `ols_vs_nnls_comparison.py` | Compares NNLS vs OLS dictionary optimisation on Taniguchi dataset. Confirms NNLS is physically interpretable without loss of accuracy. | Supplementary (Section 2.3) |
 | `co_crystal_demo.py` | (Optional) Demonstrates co‑crystal prediction using mass‑weighted averaging. | Not in paper |
 
 ## Quick Start
