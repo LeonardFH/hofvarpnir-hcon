@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="images/hofvarpnir_logo.png" alt="HófvarpnirHCON Logo" width="300">
-</p>
-
 # Reproducing the ChemRxiv Paper Results
 
 This folder contains all scripts used to generate the results reported in the ChemRxiv preprint:
@@ -95,5 +91,5 @@ These datasets are available as Supporting Information with their respective pap
 
 ## Quick Start
 
-# Install dependencies
+### Install dependencies
 pip install numpy pandas rdkit scikit-learn tqdm matplotlib
