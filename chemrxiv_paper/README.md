@@ -81,7 +81,8 @@ These datasets are available as Supporting Information with their respective pap
 |--------|--------------|--------------|
 | `polymorph_comparison.py` | Compares predicted density against experimental polymorphs (ROY, carbamazepine, aspirin, paracetamol, sulfathiazole, ritonavir). Generates Figure 6 and saves CSV results. | **Figure 6** |
 | `benchmark_within_dataset.py` | Trains on each dataset individually and predicts the same dataset (within‑dataset performance). Outputs MAE, RMSE, and R² for all six datasets. These results are used in Table 23 to compare against published models. | **Table 23** |
-| `inference_throughput_benchmark.py` | Measures inference throughput vs molecular weight on the combined dataset (229,409 molecules, 9 cores). Splits molecules into 5 MW bins and reports speed per bin. | **Table 22** |
+| `inference_throughput_benchmark.py` | Measures inference throughput vs molecular weight on the combined dataset (229,409 molecules, 9 cores). | **Table 22** |
+| `inference_throughput_benchmark_with_bins.py` | Measures inference throughput vs molecular weight on the combined dataset (229,409 molecules, 9 cores). Splits molecules into 5 MW bins and reports speed per bin. | **Table 22** |
 
 ### Supporting / Validation
 | Script | What It Does | Paper Output |
