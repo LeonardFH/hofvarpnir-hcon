@@ -24,7 +24,7 @@ PI = np.pi
 # Aligns with the empirical optimum C_LV ≈ 6.1 identified in the paper.
 LEONARDUS_SCALE = (PI ** 2) / PHI
 
-DEFAULT_OVERLAP = 0.3
+DEFAULT_OVERLAP = 5.9
 MW_SMALL_MAX = 180
 MW_MEDIUM_MAX = 400
 G_FACTOR = 1.660539

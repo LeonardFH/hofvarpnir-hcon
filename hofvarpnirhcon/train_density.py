@@ -28,7 +28,7 @@ PI = np.pi
 # Aligns with the empirical optimum C_LV ≈ 6.1 identified in the paper.
 LEONARDUS_SCALE = (PI ** 2) / PHI
 
-DEFAULT_OVERLAP = 0.3
+DEFAULT_OVERLAP = 5.9
 MW_SMALL_MAX = 180
 MW_MEDIUM_MAX = 400
 MIN_PER_CLASS = 150
@@ -36,6 +36,17 @@ MIN_PER_CLASS = 150
 # ============================================================================
 # HELPER FUNCTIONS
 # ============================================================================
+
+def validate_molecule(smiles):
+    """
+    Validate that a SMILES string represents a chemically valid molecule.
+    Uses RDKit's built‑in sanitization (default) and skips explicit valence check.
+    """
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        return False, "Failed to parse SMILES"
+    # No explicit valence check – RDKit's sanitization is sufficient
+    return True, "Valid"
 
 def get_molecular_weight(smiles):
     mol = Chem.MolFromSmiles(smiles)
@@ -253,6 +264,12 @@ def train_density(
     for _, row in tqdm(df.iterrows(), total=len(df), desc="Processing", disable=not verbose):
         smiles = row["SMILES"]
         exp = row["Density"]
+        
+        # Validate molecule first
+        is_valid, error = validate_molecule(smiles)
+        if not is_valid:
+            failed += 1
+            continue
         
         mw = get_molecular_weight(smiles)
         if mw is None:
