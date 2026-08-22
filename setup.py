@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setup(
     name="hofvarpnir-hcon",
-    version="3.21.0",
+    version="3.22.0",
     author="Leonard Haasbroek",
     author_email="leonardfhaasbroek@gmail.com",
     description="HófvarpnirHCON - Fast dictionary-based crystal density prediction from SMILES",
