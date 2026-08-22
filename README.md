@@ -2,37 +2,95 @@
   <img src="images/hofvarpnir_logo.png" alt="HófvarpnirHCON Logo" width="300">
 </p>
 
-
 # HófvarpnirHCON
 
-GitHub: [github.com/LeonardFH/hofvarpnir-hcon](https://github.com/LeonardFH/hofvarpnir-hcon)
-PyPI: [pypi.org/project/hofvarpnir-hcon](https://pypi.org/project/hofvarpnir-hcon/)
+GitHub: [github.com/LeonardFH/hofvarpnir-hcon](https://github.com/LeonardFH/hofvarpnir-hcon)  
+PyPI: [pypi.org/project/hofvarpnir-hcon](https://pypi.org/project/hofvarpnir-hcon)
 
-A modular Python framework for molecular property prediction from SMILES strings.
+A fast, interpretable, dictionary-based framework for crystal density prediction from SMILES strings.
 
-HófvarpnirHCON (pronounced "HOFF-varp-neer-HCON") is designed as a fast and extensible framework for predicting molecular properties of organic compounds containing C, H, O, and N.
+**HófvarpnirHCON** (pronounced "HOFF-varp-neer-HCON") predicts crystal density using a composition-derived reference volume (Leonardus Volume) with non-negative bond-overlap corrections. It requires no 3D conformers, no DFT calculations, and no GPU acceleration.
 
 Named after the flying horse of the Norse goddess Gná, reflecting the software's intended speed and range across molecular property spaces.
 
+---
+
 ## Current Status
 
-At present, the package implements:
-
-- Crystal density prediction for organic molecules
+The package implements **crystal density prediction for organic molecules** containing C, H, O, N, and common heteroatoms (S, F, Cl, Br, P, I).
 
 The framework is designed with extensibility in mind, allowing additional molecular property predictors to be added in future versions.
 
-## A Friendly Note
+---
 
-Hi there,
+## Key Performance
 
-I built HófvarpnirHCON because crystal density prediction should be fast, transparent, and accessible. I'm glad you found it.
+| Metric | Value |
+|--------|-------|
+| **Mean Absolute Error** | **0.0348 g/cm³** (pooled, across 235,000+ molecules, six independent datasets) |
+| **Inference Speed** | **~2,470 molecules/second** (single core) / **~8,400 molecules/second** (9 cores) |
+| **Parameters** | <200 (fully interpretable bond-overlap coefficients) |
+| **Hardware** | Standard laptop CPU (no GPU required) |
 
-If you need to get in touch: leonardfhaasbroek@gmail.com
+---
 
-## License
+## Published Research
 
-This project is distributed under the BSD 3-Clause License.
+A full account of the method, validation, and benchmark results is available as a preprint:
+
+> Haasbroek, L. F. (2026). *HófvarpnirHCON: An Interpretable Composition-Derived Volume and Bond-Overlap Dictionary Model for Fast Crystal Density Prediction from SMILES.* ChemRxiv. DOI: [10.XXXX/chemrxiv-2026-XXXXX](https://doi.org/10.XXXX/chemrxiv-2026-XXXXX)
+
+For detailed performance across specific datasets, convergence behaviour, stability analyses, and polymorph comparisons, please refer to the paper.
+
+---
+
+## Quick Start
+
+### Installation
+
+```bash
+pip install hofvarpnir-hcon
+```
+
+### Train and Predict
+
+```python
+from hofvarpnirhcon import train_density, predict_density, predict_density_batch
+import pandas as pd
+from sklearn.metrics import mean_absolute_error
+
+# Train a dictionary on your own dataset
+weights = train_density(
+    data_path="trainingdata.csv",  # columns: SMILES, Density
+    output_path="my_weights.pkl",
+    filter_cocrystals=True,        # Recommended for pure crystals
+    filter_hcon=True,              # Recommended for H,C,O,N only
+    verbose=True
+)
+
+# Predict a single molecule
+density = predict_density("CCO", weights_path="my_weights.pkl")
+
+# Predict a batch of molecules
+smiles_list = ["CCO", "CC", "c1ccccc1", "O"]
+results = predict_density_batch(smiles_list, weights_path="my_weights.pkl")
+```
+
+---
+
+## Philosophy
+
+HófvarpnirHCON explicitly challenges the assumption that high-accuracy crystal density prediction requires deep learning, 3D conformers, or expensive quantum calculations.
+
+**The paper demonstrates** that a physically motivated linear model with fewer than 200 parameters can achieve competitive accuracy while being:
+- **Transparent** — the bond-overlap coefficients represent effective volume reductions relative to the Leonardus reference volume, expressed in cm³/mol. Their relative magnitudes provide chemical insight into which bond environments contribute most to packing efficiency.
+- **Fast** — microsecond-scale inference on commodity hardware.
+- **Stable** — dictionaries transfer across independent datasets and converge rapidly.
+- **Diagnostic** — the model can identify systematic biases in crystallographic datasets.
+
+**Important note:** The bond-overlap coefficients are not standalone molecular volumes. They are corrections applied to the Leonardus reference volume. The reference volume and the corrections form a paired system — one is meaningless without the other.
+
+---
 
 ## Data Sources
 
@@ -56,200 +114,7 @@ The training and evaluation data used in the paper may be obtained from the foll
 
 These datasets are available as Supporting Information with their respective papers or via the linked public repositories.
 
-
-## Community Benchmarks
-
-If you use HófvarpnirHCON on your own dataset, I invite you to share your results.
-
-Email: **leonardfhaasbroek@gmail.com**
-
-Please include:
-- MAE, RMSE, R²
-- Number of molecules
-- Number of cocrystals
-- Dataset description and source (if public)
-
-Results will be posted here (with your permission).
-
-## Documentation
-
-For a detailed explanation of the method, see [hofvarpnirhcon/docs/METHODS.md](hofvarpnirhcon/docs/METHODS.md).
-
-## Installation
-
-pip install hofvarpnir-hcon
-
-## Quick Start: Train and Predict in Thonny
-
-```python
-# Copy and paste this entire script into Thonny and run it:
-
-from hofvarpnirhcon import train_density, predict_density, predict_density_batch
-import pandas as pd
-import numpy as np
-from sklearn.metrics import mean_absolute_error
-
-def main():
-    # ============================================================
-    # STEP 1: Download a dataset from one of the papers above
-    # Save it as "trainingdata.csv" with columns: SMILES, Density
-    # ============================================================
-
-    # ============================================================
-    # STEP 2: Train your own weights
-    # ============================================================
-
-    print("Training model...")
-    weights = train_density(
-        data_path="trainingdata.csv",
-        output_path="my_weights.pkl",
-        filter_cocrystals=True,         # Train on pure crystals only (recommended)
-        filter_hcon=True,               # Train on H,C,O,N atoms only (recommended)
-        verbose=True
-    )
-    print("Training complete! Weights saved to my_weights.pkl")
-
-    # ============================================================
-    # STEP 3: Load the dataset for predictions
-    # ============================================================
-
-    df = pd.read_csv("trainingdata.csv")
-    smiles_list = df["SMILES"].tolist()
-    actuals = df["Density"].values
-
-    # ============================================================
-    # STEP 4: Single molecule prediction
-    # ============================================================
-
-    print("\n" + "=" * 60)
-    print("SINGLE MOLECULE PREDICTION")
-    print("=" * 60)
-
-    test_smiles = smiles_list[0]
-    test_actual = actuals[0]
-    pred = predict_density(test_smiles, weights_path="my_weights.pkl")
-    print(f"SMILES: {test_smiles}")
-    print(f"Actual density: {test_actual:.4f} g/cm³")
-    print(f"Predicted density: {pred:.4f} g/cm³")
-    print(f"Error: {abs(pred - test_actual):.4f} g/cm³")
-
-    # ============================================================
-    # STEP 5: Batch prediction on entire dataset
-    # ============================================================
-
-    print("\n" + "=" * 60)
-    print("BATCH PREDICTION")
-    print("=" * 60)
-
-    print(f"Predicting {len(smiles_list)} molecules...")
-    predictions = predict_density_batch(
-        smiles_list=smiles_list,
-        weights_path="my_weights.pkl",
-        verbose=True
-    )
-
-    # ============================================================
-    # STEP 6: Calculate MAE and show results (FILTER NONE VALUES)
-    # ============================================================
-
-    # Filter out None values (failed predictions)
-    valid_mask = [p is not None for p in predictions]
-    valid_actuals = np.array(actuals)[valid_mask]
-    valid_predictions = [p for p in predictions if p is not None]
-
-    print(f"\n✅ Valid predictions: {len(valid_predictions):,} / {len(smiles_list):,}")
-
-    if len(valid_predictions) == 0:
-        print("❌ No valid predictions. Check your SMILES strings.")
-        return
-
-    mae = mean_absolute_error(valid_actuals, valid_predictions)
-    rmse = np.sqrt(np.mean((np.array(valid_predictions) - valid_actuals) ** 2))
-    r2 = np.corrcoef(valid_predictions, valid_actuals)[0, 1] ** 2
-
-    print(f"\nModel Performance:")
-    print(f"  MAE:  {mae:.4f} g/cm³")
-    print(f"  RMSE: {rmse:.4f} g/cm³")
-    print(f"  R²:   {r2:.4f}")
-
-    print("\nFirst 10 predictions:")
-    print("-" * 70)
-    print(f"{'SMILES':<35} {'Actual':>10} {'Predicted':>10} {'Error':>10}")
-    print("-" * 70)
-
-    for i in range(min(10, len(valid_predictions))):
-        smiles = smiles_list[i][:35]
-        actual = valid_actuals[i]
-        pred = valid_predictions[i]
-        error = abs(pred - actual)
-        print(f"{smiles:<35} {actual:>10.4f} {pred:>10.4f} {error:>10.4f}")
-
-    print("-" * 70)
-    print(f"MAE: {mae:.4f} g/cm³")
-    print("\n✅ All done! Weights saved to my_weights.pkl")
-
-    # ============================================================
-    # STEP 7: Save results to CSV
-    # ============================================================
-
-    results_df = pd.DataFrame({
-        'SMILES': smiles_list[:len(valid_predictions)],
-        'Actual_Density': valid_actuals,
-        'Predicted_Density': valid_predictions,
-        'Error': np.array(valid_predictions) - valid_actuals,
-        'Abs_Error': np.abs(np.array(valid_predictions) - valid_actuals),
-    })
-
-    results_df.to_csv('prediction_results.csv', index=False)
-    print("\n💾 Results saved to: prediction_results.csv")
-
-
-# ============================================================
-# CRITICAL WINDOWS SAFEGUARD
-# This stops parallel worker sub-processes from infinitely loop-crashing
-# ============================================================
-if __name__ == '__main__':
-    main()
-
-
-# ============================================================
-# USAGE EXAMPLES (Outside of main execution loop)
-# ============================================================
-
-# Single molecule prediction example:
-# from hofvarpnirhcon import predict_density
-# density = predict_density("CCO", weights_path="my_weights.pkl")
-# print(f"{density:.3f} g/cm³")
-
-# Batch prediction example:
-# from hofvarpnirhcon import predict_density_batch
-# smiles_list = ["CCO", "CC", "c1ccccc1", "O"]
-# results = predict_density_batch(smiles_list, weights_path="my_weights.pkl")
-# for smiles, density in zip(smiles_list, results):
-#     print(f"{smiles}: {density:.3f} g/cm³")
-
-```
-
-## Performance
-
-- MAE:   ~0.0300 g/cm³ on CHON molecules
-- Speed: ~1,800 molecules/second (1 core/thread)
-- Speed: ~2,700 molecules/second (2 core/thread)
-- Speed: ~3,500 molecules/second (4 core/thread - max achieved)
-
-### Verified Benchmarks
-
-| **Dataset** | **Size** | **Validation** | **MAE (g/cm³)** | **RMSE (g/cm³)** | **R²** |
-|:---|:---:|:---:|:---:|:---:|:---:|
-| **Mathieu 2017** | 308 | 10-fold CV | **0.0126** | 0.0269 | 0.9261 |
-| **Taylor/Day 2025** | 1,024 | Single run | 0.0351 | 0.0482 | 0.9239 |
-| **Davis 2024** | 16,381 | 10-fold CV | 0.0306 | 0.0406 | 0.9451 |
-| **Taniguchi 2025 (unfiltered)** | 170,253 | Single run | 0.0357 | 0.0506 | 0.9223 |
-| **Taniguchi 2025 (99%)** | 168,918 | Single run | 0.0335 | 0.0447 | 0.9374 |
-| **Taniguchi 2025 (97%)** | 165,868 | Single run | **0.0317** | 0.0416 | 0.9434 |
-
-Throughput is consistent across datasets at ~1,700–1,800 molecules/second on a single CPU core, scaling up to ~3,500 molecules/second with 4 cores in parallel.
-
+---
 
 ## Tips for Best Performance
 
@@ -261,132 +126,56 @@ For optimal accuracy, we recommend training separate dictionaries for each chemi
 - **HCON + S** — sulfur-containing molecules
 - **HCON + P** — phosphorus-containing molecules
 
-**Avoid mixing different heteroatom types** (e.g., S and Cl together) in a single training run, as this can degrade prediction accuracy.
+Avoid mixing different heteroatom types (e.g., S and Cl together) in a single training run, as this can degrade prediction accuracy.
 
-For molecules containing rare halogens (Br, I), we recommend using the HCON-only dictionaries, as there is insufficient data to train reliable halogen-specific overlaps.
-
-## Important Note on Polymorphs
-
-The model predicts a single crystal density per SMILES string. For molecules with multiple known polymorphs (e.g., ROY, carbamazepine), the prediction corresponds to a **centroid** density within the experimental range. It does **not** predict individual polymorph forms.
-
-## Verifiable Benchmarks
-
-To ensure complete transparency and guard against data memorisation, HófvarpnirHCON has been evaluated using strict **10-fold cross-validation** across completely unseen, out-of-sample data splits. 
-
-### 1. The Davis 16k Open Benchmark (10-Fold Cross-Validation)
-The framework was trained and verified using the open-source **Davis 2024 Dataset** (containing 16,381 valid, unique organic structures). In each fold, the dictionary weights were derived from 90% of the data and evaluated on the hidden 10% unseen molecules.
-
-- **Total Evaluated Unseen Molecules:** 16,381
-- **Overall Unseen MAE:** 0.0306 g/cm³
-- **Overall Unseen RMSE:** 0.0406 g/cm³
-- **Overall Unseen Total R²:** 0.9451
-
-#### 📦 Fold-by-Fold Performance Breakdown
-
-| Validation Fold | Train Size | Unseen Test Size | Valid Predictions | Unseen Fold MAE |
-| :--- | :--- | :--- | :--- | :--- |
-| **Fold 1** | 14,744 | 1,639 | 1,639 | 0.0304 g/cm³ |
-| **Fold 2** | 14,744 | 1,639 | 1,639 | 0.0299 g/cm³ |
-| **Fold 3** | 14,744 | 1,639 | 1,638 | 0.0299 g/cm³ |
-| **Fold 4** | 14,745 | 1,638 | 1,638 | 0.0315 g/cm³ |
-| **Fold 5** | 14,745 | 1,638 | 1,638 | 0.0314 g/cm³ |
-| **Fold 6** | 14,745 | 1,638 | 1,638 | 0.0298 g/cm³ |
-| **Fold 7** | 14,745 | 1,638 | 1,637 | 0.0307 g/cm³ |
-| **Fold 8** | 14,745 | 1,638 | 1,638 | 0.0318 g/cm³ |
-| **Fold 9** | 14,745 | 1,638 | 1,638 | 0.0301 g/cm³ |
-| **Fold 10**| 14,745 | 1,638 | 1,638 | 0.0308 g/cm³ |
+For molecules containing rare halogens (Br, I), the HCON-only dictionaries are recommended, as there is insufficient data to train reliable halogen-specific overlaps.
 
 ---
 
-### ⏱️ Verified Execution Timings (Davis 16k Batch)
-
-```text
-============================================================
-🏁 HÓFVARPNIR PERFORMANCE SUMMARY
-============================================================
-Total Dataset Size:  16,383 molecules
-Training Duration:    16.0896 seconds
-Prediction Duration:   9.9932 seconds
-Overall Script Time:  26.7492 seconds
-Throughput Rate:      1,639.21 molecules/second
-============================================================
-```
-
-### 2. The Mathieu 308 Open Benchmark (10-Fold Cross-Validation)
-
-The framework was trained and verified using the open-source **Mathieu Dataset** (containing 308 valid, unique organic structures). In each fold, the dictionary weights were derived from 90% of the data and evaluated on the hidden 10% unseen molecules.
-
-- **Total Evaluated Unseen Molecules:** 308
-- **Overall Unseen MAE:** 0.0126 g/cm³
-- **Overall Unseen RMSE:** 0.0269 g/cm³
-- **Overall Unseen Total R²:** 0.9261
-
-#### 📦 Fold-by-Fold Performance Breakdown
-
-| Validation Fold | Train Size | Unseen Test Size | Valid Predictions | Unseen Fold MAE |
-| :--- | :--- | :--- | :--- | :--- |
-| **Fold 1**  | 277 | 31 | 31 | 0.0108 g/cm³ |
-| **Fold 2**  | 277 | 31 | 31 | 0.0161 g/cm³ |
-| **Fold 3**  | 277 | 31 | 31 | 0.0081 g/cm³ |
-| **Fold 4**  | 277 | 31 | 31 | 0.0197 g/cm³ |
-| **Fold 5**  | 277 | 31 | 31 | 0.0089 g/cm³ |
-| **Fold 6**  | 277 | 31 | 31 | 0.0089 g/cm³ |
-| **Fold 7**  | 277 | 31 | 31 | 0.0142 g/cm³ |
-| **Fold 8**  | 277 | 31 | 31 | 0.0176 g/cm³ |
-| **Fold 9**  | 278 | 30 | 30 | 0.0104 g/cm³ |
-| **Fold 10** | 278 | 30 | 30 | 0.0115 g/cm³ |
-
----
-
-### ⏱️ Verified Execution Timings (Mathieu 308 Batch)
-
-```text
-============================================================
-🏁 HÓFVARPNIR PERFORMANCE SUMMARY (Mathieu)
-============================================================
-Total Dataset Size:  308 molecules
-Training Duration:    0.2382 seconds
-Prediction Duration:  0.1824 seconds
-Overall Script Time:  0.4563 seconds
-Throughput Rate:      1,688.40 molecules/second
-============================================================
-```
-
-
-### Co-crystal Prediction
+## Co-crystal Prediction
 
 HófvarpnirHCON handles co-crystals (SMILES strings containing a dot, e.g., `"CCO.O=C(O)C"`) using mass-weighted averaging of the predicted densities of each component.
 
-It works for any number of components in the co-crystal — two, three, or more — with no additional parameters or model changes.
+For datasets containing a **large number of co-crystals**, improved accuracy can be achieved by training separate dictionaries on co-crystal data only. For datasets with **only a few co-crystals**, the pure-trained dictionaries provide reliable estimates.
 
-For datasets containing a **large number of co-crystals**, improved accuracy can be achieved by training separate dictionaries on co-crystal data only.
-
-For datasets with **only a few co-crystals**, the pure-trained dictionaries provide reliable predictions via mass-weighted averaging, and no special treatment is required.
-
-#### Performance Estimate
-
-Based on the model's performance on single-component systems and the physical assumptions of the method, I estimate that HófvarpnirHCON will achieve approximately:
-
-- **MAE:** ~0.038 g/cm³
-- **RMSE:** ~0.050 g/cm³
-- **R²:** ~0.90
-
-If you have co-crystal data, you are welcome to share your results via the [Community Benchmarks](#community-benchmarks) section above.
+For detailed co-crystal performance, see the paper.
 
 ---
 
-### 🥊 The open-source Challenge: Dictionary vs. Transformer
+## Polymorphs
 
-HófvarpnirHCON explicitly challenges the industry assumption that high-fidelity crystal density mapping requires multi-million parameter deep learning networks, heavy GPU server stacks, or 3D coordinate mapping. 
+The model predicts a single crystal density per SMILES string. For molecules with multiple known polymorphs, the prediction corresponds to a characteristic packing density for the molecular topology. The paper includes a comparison against experimental polymorph ensembles of six well-characterised molecules (ROY, carbamazepine, aspirin, paracetamol, sulfathiazole, ritonavir).
 
-The table below contrasts our lightweight, dictionary-based CPU throughput and accuracy directly against recent published neural architectures:
+---
 
-| Model Architecture | Hardware Profile | Compute Infrastructure | Throughput Velocity | Unseen Test MAE |
-| :--- | :--- | :--- | :--- | :--- |
-| **HófvarpnirHCON** (This Work) | 186-Bond Overlap Dictionary | 1 Standard Laptop CPU Core | **2,470 mols / sec** | **0.0348 g/cm³** |
+## Community Benchmarks
 
-*Note: While heavy Transformer networks require significant time to initialize, allocate VRAM, and pass global convolutions across molecular graphs, HófvarpnirHCON trains and predicts across the entire 16,381 molecule Davis dataset in under 27 seconds total on a standard laptop CPU.*
+If you use HófvarpnirHCON on your own dataset, I invite you to share your results.
 
+Email: **leonardfhaasbroek@gmail.com**
+
+Please include:
+- MAE, RMSE, R²
+- Number of molecules
+- Dataset description and source (if public)
+
+Results will be posted here (with your permission).
+
+---
+
+## A Friendly Note
+
+Hi there,
+
+I built HófvarpnirHCON because crystal density prediction should be fast, transparent, and accessible. I'm glad you found it.
+
+If you need to get in touch: leonardfhaasbroek@gmail.com
+
+## License
+
+This project is distributed under the BSD 3-Clause License.
+
+---
 
 ## Citation
 
@@ -397,3 +186,10 @@ Haasbroek, L. F. (2026). HófvarpnirHCON: Fast dictionary-based crystal density 
 ```
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21315626.svg)](https://doi.org/10.5281/zenodo.21315626)
+
+---
+
+## Contact
+
+Leonard F. Haasbroek  
+leonardfhaasbroek@gmail.com
